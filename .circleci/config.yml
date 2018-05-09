@@ -1,0 +1,46 @@
+version: 2
+
+working_directory: ~/app
+
+jobs:
+  build_ruby_2_3_7:
+    docker:
+      - image: circleci/ruby:2.3.7
+    steps:
+      - run: echo build ruby-2.3.7
+
+  build_ruby_2_5_1:
+    docker:
+      - image: circleci/ruby:2.5.1
+    steps:
+      - run: echo build ruby-2.5.1
+
+  build_docker_executor:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: |
+          docker build -f docker_executor.dockerfile -t arisawa/circleci-base:docker_executor-0.0.$CIRCLE_BUILD_NUM .
+          docker login -u $DOCKER_USER -p $DOCKER_PASS
+          docker push arisawa/circleci-base:docker_executor-0.0.$CIRCLE_BUILD_NUM
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - build_docker_executor:
+          filters:
+            branches:
+              only: master
+
+  nightly:
+    jobs:
+      - build_docker_executor
+    triggers:
+      - schedule:
+          cron: "0 21 * * 0" # UTC
+          filters:
+            branches:
+              only: master
