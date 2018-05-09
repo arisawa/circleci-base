@@ -22,25 +22,15 @@ jobs:
       - checkout
       - setup_remote_docker
       - run: |
-          docker build -f docker_executor.dockerfile -t arisawa/circleci-base:docker_executor-0.0.$CIRCLE_BUILD_NUM .
+          docker build -t arisawa/circleci-base:docker_executor-0.0.$CIRCLE_BUILD_NUM .
           docker login -u $DOCKER_USER -p $DOCKER_PASS
           docker push arisawa/circleci-base:docker_executor-0.0.$CIRCLE_BUILD_NUM
 
 workflows:
   version: 2
-  test:
+  build:
     jobs:
       - build_docker_executor:
-          filters:
-            branches:
-              only: master
-
-  nightly:
-    jobs:
-      - build_docker_executor
-    triggers:
-      - schedule:
-          cron: "0 21 * * 0" # UTC
           filters:
             branches:
               only: master
